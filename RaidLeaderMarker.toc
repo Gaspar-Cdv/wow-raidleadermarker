@@ -1,0 +1,8 @@
+## Interface: 120001
+## Version: 1.0.0
+## Title: RaidLeaderMarker
+## Notes: Very lightweight addon to mark raid leaders with a crown icon in the raid frames.
+## Author: Gaspito
+## IconTexture: Interface\GroupFrame\UI-Group-LeaderIcon
+
+RaidLeaderMarker.lua
