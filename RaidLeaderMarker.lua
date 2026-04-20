@@ -1,12 +1,29 @@
--- Retail only
+local addonName, addon = ...
+
 if WOW_PROJECT_ID ~= WOW_PROJECT_MAINLINE then
+  -- Retail only
   return
 end
 
-local addon = CreateFrame("Frame")
+local AddonFrame = CreateFrame("Frame")
 local LEADER_ICON = "Interface\\GroupFrame\\UI-Group-LeaderIcon"
 
 local icons = {}
+
+local function UpdateIcon(icon, frame)
+  if not icon or not frame then
+    return
+  end
+
+  local anchor = RaidLeaderMarkerDB.leaderIcon.anchor or "CENTER"
+  local size = RaidLeaderMarkerDB.leaderIcon.size or 16
+  local offsetX = RaidLeaderMarkerDB.leaderIcon.offsetX or 0
+  local offsetY = RaidLeaderMarkerDB.leaderIcon.offsetY or 0
+
+  icon:SetSize(size, size)
+  icon:ClearAllPoints()
+  icon:SetPoint("CENTER", frame, anchor, offsetX, offsetY)
+end
 
 local function EnsureIcon(frame)
   if not frame then
@@ -18,9 +35,7 @@ local function EnsureIcon(frame)
   end
 
   local icon = frame:CreateTexture(nil, "OVERLAY")
-  icon:SetSize(16, 16)
   icon:SetTexture(LEADER_ICON)
-  icon:SetPoint("CENTER", frame, "CENTER", 0, 0)
   icon:Hide()
 
   icons[frame] = icon
@@ -65,6 +80,10 @@ end
 local function UpdateAll()
   ClearAllIcons()
 
+  if RaidLeaderMarkerDB.leaderIcon.enabled == false then
+    return
+  end
+
   if not IsInGroup() then
     return
   end
@@ -74,17 +93,29 @@ local function UpdateAll()
   for _, frame in ipairs(frames) do
     local unit = frame.unit
     if unit and UnitExists(unit) and UnitIsGroupLeader(unit) then
-      EnsureIcon(frame):Show()
+      local icon = EnsureIcon(frame)
+      if icon then
+        icon:Show()
+        UpdateIcon(icon, frame)
+      end
       return
     end
   end
 end
 
-addon:RegisterEvent("PLAYER_LOGIN")
-addon:RegisterEvent("GROUP_ROSTER_UPDATE")
-addon:RegisterEvent("PARTY_LEADER_CHANGED")
-addon:RegisterEvent("PLAYER_ENTERING_WORLD")
+addon.UpdateAll = UpdateAll
 
-addon:SetScript("OnEvent", function()
+AddonFrame:RegisterEvent("ADDON_LOADED")
+AddonFrame:RegisterEvent("PLAYER_LOGIN")
+AddonFrame:RegisterEvent("GROUP_ROSTER_UPDATE")
+AddonFrame:RegisterEvent("PARTY_LEADER_CHANGED")
+AddonFrame:RegisterEvent("PLAYER_ENTERING_WORLD")
+
+AddonFrame:SetScript("OnEvent", function(self, event, ...)
+  if event == "ADDON_LOADED" and ... == addonName then
+    addon.InitializeDB()
+    addon.InitializeSettings()
+  end
+
   UpdateAll()
 end)
