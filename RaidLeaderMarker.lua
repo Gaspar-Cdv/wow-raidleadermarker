@@ -11,67 +11,38 @@ local LEADER_ICON = "Interface\\GroupFrame\\UI-Group-LeaderIcon"
 local leaderIcons = {}
 local markerIcons = {}
 
-local function UpdateLeaderIcon(icon, frame)
-  if not icon or not frame then
-    return
-  end
+local function UpdateIcon(icon, frame, settings)
+	if not icon or not frame then
+		return
+	end
 
-  local anchor = RaidLeaderMarkerDB.leaderIcon.anchor or "CENTER"
-  local size = RaidLeaderMarkerDB.leaderIcon.size or 16
-  local offsetX = RaidLeaderMarkerDB.leaderIcon.offsetX or 0
-  local offsetY = RaidLeaderMarkerDB.leaderIcon.offsetY or 0
+	local anchor = settings.anchor or "CENTER"
+	local size = settings.size or 16
+	local offsetX = settings.offsetX or 0
+	local offsetY = settings.offsetY or 0
 
-  icon:SetSize(size, size)
-  icon:ClearAllPoints()
-  icon:SetPoint("CENTER", frame, anchor, offsetX, offsetY)
+	icon:SetSize(size, size)
+	icon:ClearAllPoints()
+	icon:SetPoint("CENTER", frame, anchor, offsetX, offsetY)
 end
 
-local function UpdateMarkerIcon(icon, frame)
-  if not icon or not frame then
-    return
-  end
+local function EnsureIcon(frame, iconTable, texture)
+	if not frame then
+		return nil
+	end
 
-  local anchor = RaidLeaderMarkerDB.targetMarker.anchor or "LEFT"
-  local size = RaidLeaderMarkerDB.targetMarker.size or 16
-  local offsetX = RaidLeaderMarkerDB.targetMarker.offsetX or -16
-  local offsetY = RaidLeaderMarkerDB.targetMarker.offsetY or 0
+	if iconTable[frame] then
+		return iconTable[frame]
+	end
 
-  icon:SetSize(size, size)
-  icon:ClearAllPoints()
-  icon:SetPoint("CENTER", frame, anchor, offsetX, offsetY)
-end
+	local icon = frame:CreateTexture(nil, "OVERLAY")
+	if texture then
+		icon:SetTexture(texture)
+	end
+	icon:Hide()
 
-local function EnsureLeaderIcon(frame)
-  if not frame then
-    return nil
-  end
-
-  if leaderIcons[frame] then
-    return leaderIcons[frame]
-  end
-
-  local icon = frame:CreateTexture(nil, "OVERLAY")
-  icon:SetTexture(LEADER_ICON)
-  icon:Hide()
-
-  leaderIcons[frame] = icon
-  return icon
-end
-
-local function EnsureMarkerIcon(frame)
-  if not frame then
-    return nil
-  end
-
-  if markerIcons[frame] then
-    return markerIcons[frame]
-  end
-
-  local icon = frame:CreateTexture(nil, "OVERLAY")
-  icon:Hide()
-
-  markerIcons[frame] = icon
-  return icon
+	iconTable[frame] = icon
+	return icon
 end
 
 local function ClearAllIcons()
@@ -126,22 +97,23 @@ local function UpdateAll()
     if unit and UnitExists(unit) then
       -- Leader icon
       if RaidLeaderMarkerDB.leaderIcon.enabled and UnitIsGroupLeader(unit) then
-        local leaderIcon = EnsureLeaderIcon(frame)
+        local leaderIcon = EnsureIcon(frame, leaderIcons, LEADER_ICON)
         if leaderIcon then
           leaderIcon:Show()
-          UpdateLeaderIcon(leaderIcon, frame)
+          UpdateIcon(leaderIcon, frame, RaidLeaderMarkerDB.leaderIcon)
         end
       end
+
       -- Target marker icon
       if RaidLeaderMarkerDB.targetMarker.enabled then
-        local markerIcon = EnsureMarkerIcon(frame)
+        local markerIcon = EnsureIcon(frame, markerIcons)
 				if markerIcon then
-				local markerIndex = GetRaidTargetIndex(unit)
+					local markerIndex = GetRaidTargetIndex(unit)
 					if markerIndex then
 						markerIcon:SetTexture("Interface\\TargetingFrame\\UI-RaidTargetingIcons");
 						SetRaidTargetIconTexture(markerIcon, markerIndex);
 						markerIcon:Show()
-						UpdateMarkerIcon(markerIcon, frame)
+						UpdateIcon(markerIcon, frame, RaidLeaderMarkerDB.targetMarker)
 					else
 						markerIcon:Hide()
 					end

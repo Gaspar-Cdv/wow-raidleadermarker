@@ -59,76 +59,47 @@ local anchorOptions = {
   { value = "BOTTOMRIGHT", label = "Bottom Right" },
 }
 
-local function InitializeSettings()
-  local settingsCategory, settingsLayout = Settings.RegisterVerticalLayoutCategory("Raid Leader Marker")
+local function CreateSettingCategory(tableName, settingsCategory, settingsLayout, name, tooltip)
+  settingsLayout:AddInitializer(CreateSettingsListSectionHeaderInitializer(name, tooltip))
 
-  settingsLayout:AddInitializer(CreateSettingsListSectionHeaderInitializer("Leader icon", "Configure the leader icon's position and size."))
-
-  -- Checkbox to enable/disable the leader icon
-  CreateCheckbox(settingsCategory, "leaderIcon", "enabled", "Enable Leader Icon", "Toggle the display of the leader icon.", function(setting, value)
-    RaidLeaderMarkerDB.leaderIcon.enabled = value
+  -- Checkbox to enable/disable the icon
+  CreateCheckbox(settingsCategory, tableName, "enabled", "Enable", "Toggle the display of the icon.", function(setting, value)
+    RaidLeaderMarkerDB[tableName].enabled = value
     addon.UpdateAll()
   end)
 
   -- Dropdown for anchor point
-  CreateDropdown(settingsCategory, "leaderIcon", "anchor", "Anchor Point", "Choose the anchor point for the icon.", anchorOptions, function(setting, value)
-    RaidLeaderMarkerDB.leaderIcon.anchor = value
-    RaidLeaderMarkerDB.leaderIcon.offsetX = 0
-    RaidLeaderMarkerDB.leaderIcon.offsetY = 0
+  CreateDropdown(settingsCategory, tableName, "anchor", "Anchor Point", "Choose the anchor point for the icon.", anchorOptions, function(setting, value)
+    RaidLeaderMarkerDB[tableName].anchor = value
+    RaidLeaderMarkerDB[tableName].offsetX = 0
+    RaidLeaderMarkerDB[tableName].offsetY = 0
     addon.UpdateAll()
   end)
 
   -- Slider for offsetX
-  CreateSlider(settingsCategory, "leaderIcon", "offsetX", "Offset X", "Horizontal offset from the anchor.", -50, 50, 1, function(setting, value)
-    RaidLeaderMarkerDB.leaderIcon.offsetX = value
+  CreateSlider(settingsCategory, tableName, "offsetX", "Offset X", "Horizontal offset from the anchor.", -50, 50, 1, function(setting, value)
+    RaidLeaderMarkerDB[tableName].offsetX = value
     addon.UpdateAll()
   end)
 
   -- Slider for offsetY
-  CreateSlider(settingsCategory, "leaderIcon", "offsetY", "Offset Y", "Vertical offset from the anchor.", -50, 50, 1, function(setting, value)
-    RaidLeaderMarkerDB.leaderIcon.offsetY = value
+  CreateSlider(settingsCategory, tableName, "offsetY", "Offset Y", "Vertical offset from the anchor.", -50, 50, 1, function(setting, value)
+    RaidLeaderMarkerDB[tableName].offsetY = value
     addon.UpdateAll()
   end)
 
   -- Slider for size
-  CreateSlider(settingsCategory, "leaderIcon", "size", "Icon Size", "Size of the leader icon.", 16, 32, 1, function(setting, value)
-    RaidLeaderMarkerDB.leaderIcon.size = value
+  CreateSlider(settingsCategory, tableName, "size", "Icon Size", "Size of the icon.", 16, 32, 1, function(setting, value)
+    RaidLeaderMarkerDB[tableName].size = value
     addon.UpdateAll()
   end)
+end
 
-  settingsLayout:AddInitializer(CreateSettingsListSectionHeaderInitializer("Target marker", "Configure the target marker's position and size."))
+local function InitializeSettings()
+  local settingsCategory, settingsLayout = Settings.RegisterVerticalLayoutCategory("Raid Leader Marker")
 
-	-- Checkbox to enable/disable the target marker
-	CreateCheckbox(settingsCategory, "targetMarker", "enabled", "Enable Target Marker", "Toggle the display of the target marker.", function(setting, value)
-		RaidLeaderMarkerDB.targetMarker.enabled = value
-		addon.UpdateAll()
-	end)
-
-	-- Dropdown for anchor point
-	CreateDropdown(settingsCategory, "targetMarker", "anchor", "Anchor Point", "Choose the anchor point for the icon.", anchorOptions, function(setting, value)
-		RaidLeaderMarkerDB.targetMarker.anchor = value
-		RaidLeaderMarkerDB.targetMarker.offsetX = 0
-		RaidLeaderMarkerDB.targetMarker.offsetY = 0
-		addon.UpdateAll()
-	end)
-
-	-- Slider for offsetX
-	CreateSlider(settingsCategory, "targetMarker", "offsetX", "Offset X", "Horizontal offset from the anchor.", -50, 50, 1, function(setting, value)
-		RaidLeaderMarkerDB.targetMarker.offsetX = value
-		addon.UpdateAll()
-	end)
-
-	-- Slider for offsetY
-	CreateSlider(settingsCategory, "targetMarker", "offsetY", "Offset Y", "Vertical offset from the anchor.", -50, 50, 1, function(setting, value)
-		RaidLeaderMarkerDB.targetMarker.offsetY = value
-		addon.UpdateAll()
-	end)
-
-	-- Slider for sizes
-	CreateSlider(settingsCategory, "targetMarker", "size", "Icon Size", "Size of the target marker.", 16, 32, 1, function(setting, value)
-		RaidLeaderMarkerDB.targetMarker.size = value
-		addon.UpdateAll()
-	end)
+	CreateSettingCategory("leaderIcon", settingsCategory, settingsLayout, "Leader icon", "Configure the leader icon's position and size.")
+	CreateSettingCategory("targetMarker", settingsCategory, settingsLayout, "Target marker", "Configure the target marker's position and size.")
 
   Settings.RegisterAddOnCategory(settingsCategory)
 end
